@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SynapseMeet — Profile</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icons/synapse-logo.svg">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="profile">
+  <div class="app-shell">
+    <header class="topbar">
+      <a href="dashboard.html" aria-label="Back">←</a>
+      <div class="brand">Profile</div>
+      <span class="topbar-spacer" aria-hidden="true"></span>
+    </header>
+
+    <main class="screen">
+      <div class="profile-header">
+        <label class="profile-avatar-picker" for="avatar-input" title="Choose profile photo">
+          <div class="synapse-ring profile-avatar-ring"><div class="avatar" id="profile-avatar">•</div></div>
+          <span class="avatar-edit" aria-hidden="true">+</span>
+        </label>
+        <input id="avatar-input" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+        <h2 id="profile-name">—</h2>
+        <p id="profile-email">—</p>
+      </div>
+
+      <div class="section-title">Preferences</div>
+      <div class="settings-row">
+        <span>Live AI captions</span>
+        <button id="toggle-captions" class="toggle"></button>
+            </div>
+      <div class="settings-row">
+        <label for="job-title">Job title</label>
+        <input id="job-title" class="job-title-input" type="text" placeholder="Add job title">
+      </div>
+
+      <div class="section-title">Account</div>
+      <form id="password-form" class="profile-form">
+        <div class="field">
+          <label for="current-password">Current password</label>
+          <input id="current-password" type="password" autocomplete="current-password" required>
+        </div>
+        <div class="field">
+          <label for="new-password">New password</label>
+          <input id="new-password" type="password" autocomplete="new-password" minlength="8" required>
+        </div>
+        <div class="field">
+          <label for="confirm-password">Confirm new password</label>
+          <input id="confirm-password" type="password" autocomplete="new-password" minlength="8" required>
+        </div>
+        <p id="profile-feedback" class="profile-feedback" role="status"></p>
+        <button type="submit" id="change-password-btn" class="btn btn-secondary btn-block">Change password</button>
+      </form>
+      <button id="logout-btn" class="btn btn-danger btn-block profile-logout">Sign out</button>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="dashboard.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        Home
+      </a>
+      <a href="meeting-create.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M9 10l6 4-6 4z" fill="currentColor" stroke="none"/></svg>
+        Schedule
+      </a>
+      <a href="profile.html" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+        Profile
+      </a>
+    </nav>
+  </div>
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/sw-register.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!SynapseAPI.isAuthenticated()) { window.location.href = 'index.html'; return; }
+      const user = SynapseAPI.getCurrentUser();
+      const profile = (user && user.profile) || {};
+      document.getElementById('profile-name').textContent = profile.display_name || user.username;
+      document.getElementById('profile-email').textContent = user.email || '';
+      const avatar = document.getElementById('profile-avatar');
+      const resolveMediaUrl = (url) => {
+        if (!url) return '';
+        return new URL(url, window.location.origin).href;
+      };
+      const avatarUrl = resolveMediaUrl(profile.avatar);
+      if (avatarUrl) {
+        avatar.textContent = '';
+        avatar.style.backgroundImage = `url("${avatarUrl}")`;
+        avatar.classList.add('has-image');
+      } else {
+        avatar.textContent = (profile.display_name || user.username || '?').slice(0,2).toUpperCase();
+      }
+      document.getElementById('job-title').value = profile.job_title || '';
+
+      const feedback = document.getElementById('profile-feedback');
+      const showFeedback = (message, isError = false) => {
+        feedback.textContent = message;
+        feedback.classList.toggle('is-error', isError);
+      };
+
+      document.getElementById('avatar-input').addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+          showFeedback('Photo must be smaller than 5 MB.', true);
+          return;
+        }
+        const formData = new FormData();
+        formData.append('avatar', file);
+        try {
+          const updatedProfile = await SynapseAPI.updateProfile(formData);
+          avatar.textContent = '';
+          avatar.style.backgroundImage = `url("${resolveMediaUrl(updatedProfile.avatar)}")`;
+          avatar.classList.add('has-image');
+          const currentUser = await SynapseAPI.fetchMe();
+          localStorage.setItem('sm_user', JSON.stringify(currentUser));
+          showFeedback('Profile photo updated.');
+        } catch (error) {
+          showFeedback(error.message || 'Could not upload photo.', true);
+        }
+      });
+
+      const captionsToggle = document.getElementById('toggle-captions');
+      let captionsOn = profile.ai_captions_enabled !== false;
+      const render = () => captionsToggle.classList.toggle('on', captionsOn);
+      render();
+      captionsToggle.addEventListener('click', async () => {
+        captionsOn = !captionsOn;
+        render();
+        try { await SynapseAPI.updateProfile({ ai_captions_enabled: captionsOn }); } catch (e) {}
+      });
+
+      document.getElementById('job-title').addEventListener('change', async (e) => {
+        try { await SynapseAPI.updateProfile({ job_title: e.target.value }); } catch (err) {}
+      });
+
+      document.getElementById('password-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = document.getElementById('change-password-btn');
+        button.disabled = true;
+        showFeedback('Updating password...');
+        try {
+          await SynapseAPI.changePassword({
+            current_password: document.getElementById('current-password').value,
+            new_password: document.getElementById('new-password').value,
+            confirm_password: document.getElementById('confirm-password').value,
+          });
+          event.target.reset();
+          showFeedback('Password changed successfully.');
+        } catch (error) {
+          showFeedback(error.message || 'Could not change password.', true);
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        SynapseAPI.logout();
+        window.location.href = 'index.html';
+      });
+    });
+  </script>
+</body>
+</html>

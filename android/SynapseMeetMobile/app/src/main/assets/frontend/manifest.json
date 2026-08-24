@@ -1,0 +1,13 @@
+{
+  "name": "SynapseMeet",
+  "short_name": "SynapseMeet",
+  "description": "AI-powered meeting server mobile app.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0B0F1A",
+  "theme_color": "#0B0F1A",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "assets/icons/synapse-logo.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

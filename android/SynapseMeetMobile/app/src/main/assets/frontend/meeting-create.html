@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SynapseMeet — Schedule a meeting</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icons/synapse-logo.svg">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="meeting-create">
+  <div class="app-shell">
+    <header class="topbar">
+      <a href="dashboard.html" aria-label="Back">←</a>
+      <div class="brand">New meeting</div>
+      <span style="width:22px;"></span>
+    </header>
+
+    <main class="screen">
+      <div id="form-error" class="form-error"></div>
+      <form id="create-meeting-form">
+        <div class="field">
+          <label for="title">Title</label>
+          <input id="title" type="text" placeholder="Weekly product sync" required>
+        </div>
+        <div class="field">
+          <label for="description">Description</label>
+          <textarea id="description" placeholder="What's this meeting about?"></textarea>
+        </div>
+        <div class="field">
+          <label for="scheduled_start">Starts</label>
+          <input id="scheduled_start" type="datetime-local" required>
+        </div>
+        <div class="field">
+          <label for="scheduled_end">Ends</label>
+          <input id="scheduled_end" type="datetime-local">
+        </div>
+        <div class="field">
+          <label class="checkbox-row">
+            <input type="checkbox" id="is_ai_enabled" checked>
+            Enable SynapseMeet AI (live captions, summary, action items)
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Schedule meeting</button>
+      </form>
+    </main>
+  </div>
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/sw-register.js"></script>
+  <script>
+    document.getElementById('create-meeting-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorBox = document.getElementById('form-error');
+      errorBox.classList.remove('visible');
+      const payload = {
+        title: document.getElementById('title').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        scheduled_start: document.getElementById('scheduled_start').value,
+        scheduled_end: document.getElementById('scheduled_end').value || null,
+        is_ai_enabled: document.getElementById('is_ai_enabled').checked,
+      };
+      try {
+        const meeting = await SynapseAPI.createMeeting(payload);
+        window.location.href = `meeting-room.html?id=${meeting.id}`;
+      } catch (err) {
+        errorBox.textContent = 'Could not schedule this meeting. ' + err.message;
+        errorBox.classList.add('visible');
+      }
+    });
+  </script>
+</body>
+</html>

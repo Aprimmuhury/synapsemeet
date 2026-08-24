@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SynapseMeet — Meeting room</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icons/synapse-logo.svg">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="meeting-room">
+  <div class="app-shell meeting-room">
+    <header class="room-header">
+      <a href="dashboard.html" aria-label="Back">←</a>
+      <div>
+        <div class="room-title" id="room-title">Loading…</div>
+        <div class="room-code">Room code: <span id="room-code">—</span></div>
+      </div>
+      <span class="live-badge"><span class="dot"></span>Live</span>
+    </header>
+
+    <div id="participant-grid" class="participant-grid"></div>
+
+    <div class="room-tabs">
+      <button class="active" data-panel="panel-ai">AI Assistant</button>
+      <button data-panel="panel-chat">Chat</button>
+      <button data-panel="panel-actions">Action items</button>
+    </div>
+
+    <section id="panel-ai" class="room-panel">
+      <div class="ai-note">
+        <div class="ai-note-label">✦ Meeting summary</div>
+        <div id="ai-summary-box">Loading summary…</div>
+        <button id="generate-summary" class="btn btn-secondary" style="margin-top:12px; width:100%;">Regenerate summary</button>
+      </div>
+      <div class="section-title">Live captions</div>
+      <div id="live-captions"></div>
+    </section>
+
+    <section id="panel-chat" class="room-panel" hidden>
+      <div class="chat-messages"></div>
+      <form id="chat-form" class="chat-input-row">
+        <input id="chat-input" type="text" autocomplete="off">
+        <button type="submit" aria-label="Send">➤</button>
+      </form>
+    </section>
+
+    <section id="panel-actions" class="room-panel" hidden>
+      <div id="action-item-list"></div>
+    </section>
+
+    <div class="controls-bar">
+      <button id="toggle-mic" class="btn btn-icon btn-secondary" aria-label="Toggle microphone">🎙️</button>
+      <button id="toggle-camera" class="btn btn-icon btn-secondary" aria-label="Toggle camera">📷</button>
+      <button id="toggle-screen-share" class="btn btn-icon btn-secondary" aria-label="Toggle screen share">🖥️</button>
+      <button id="toggle-screen-record" class="btn btn-icon btn-secondary" aria-label="Toggle screen recording">⏺️</button>
+      <button id="toggle-ai" class="btn btn-icon btn-secondary ai-on" aria-label="Toggle AI assistant">✦</button>
+      <button id="leave-meeting" class="btn btn-icon btn-danger" aria-label="Leave meeting">⏻</button>
+    </div>
+  </div>
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/sw-register.js"></script>
+  <script src="js/ai-assistant.js"></script>
+  <script src="js/meeting.js"></script>
+</body>
+</html>

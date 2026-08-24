@@ -1,0 +1,24 @@
+/* SynapseMeet is designed mobile-first (max-width: 480px app shell).
+   These rules refine behavior on larger phones/tablets/desktop preview. */
+
+@media (min-width: 481px) {
+  body {
+    background-color: var(--ink-950);
+  }
+  .app-shell {
+    box-shadow: 0 0 80px rgba(0,0,0,0.5);
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 360px) {
+  .screen { padding: 16px 14px 12px; }
+  .participant-grid { padding: 12px 14px; gap: 8px; }
+  .auth-hero h1 { font-size: 1.4rem; }
+}
+
+@media (min-width: 700px) {
+  /* Optional wider "tablet preview" layout for the meeting room only */
+  .participant-grid { grid-template-columns: repeat(3, 1fr); }
+}
